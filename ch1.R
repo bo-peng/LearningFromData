@@ -1,5 +1,6 @@
 ## Wed Apr 2, 2014
-## Problem 1.4
+############# Problem 1.4 #############
+#######################################
 
 # Generating the data
 size = 20
@@ -43,25 +44,48 @@ makeData <- function(size, dim) {
 }
 
 # Drawing the data and Perceptron Learning Algorithm
-perceptron <- function(size, dim, isChart, partg=1) {
+perceptron <- function(size, dim, isChart, partg=1, eta=0) {
     data <- makeData(size, dim)
     # add coordinate x0 = 1
     Xp <- cbind(rep(1,size), data@X)   
-    # start at w0 = 0
-    tvect <- c()
-    for (i in 1:partg) {
+    if (eta==0) {
+        tvect <- c()
+        for (i in 1:partg) {
+            # start at w0 = 0
+            w <- rep(0,dim + 1)
+            t = 0
+            matrixSigns <- sign(w %*% t(Xp))
+            while ( any( matrixSigns != data@classes) & t <size*10 ) {
+                samp <- sample( which( matrixSigns != data@classes), 1)
+                y <- data@classes[samp]
+                ## update PLA
+                w <- w + y * Xp[samp,]
+                matrixSigns <- sign(w %*% t(Xp))
+                t <- t+1
+            }
+            tvect[i] <- t
+        }
+    } else {
+        ## Adaline; Adaptive Linear Nueron algorithm for Perceptron Learning.
         w <- rep(0,dim + 1)
         t = 0
-        matrixSigns <- sign(w %*% t(Xp))
-        while ( any( matrixSigns != data@classes) & t <size*10 ) {
+        matrixVals <- w %*% t(Xp)
+        matrixSigns <- sign(matrixVals)
+        while ( any( matrixSigns != data@classes) & t <1000 ) {
             samp <- sample( which( matrixSigns != data@classes), 1)
             y <- data@classes[samp]
-            ## update PLA
-            w <- w + y * Xp[samp,]
-            matrixSigns <- sign(w %*% t(Xp))
+            ## is y(t)*rho(t) close enough?
+            if (y * matrixVals[samp] <= 1) {
+                ## update PLA
+                w <- w + eta * (y - matrixVals[samp]) * Xp[samp,]
+                matrixSigns <- sign(w %*% t(Xp))
+            } ## otherwise, don't update the algorithm
             t <- t+1
         }
-        tvect[i] <- t
+        
+        ## Error calculations
+        errorRate <- sum( which( matrixSigns != data@classes) ) / size
+        tvect <- c(t, errorRate)
     }
 
     # make a chart?
@@ -92,7 +116,11 @@ perceptron <- function(size, dim, isChart, partg=1) {
         abline(a=g.int, b=g.slope, lty=2)
     }
     if( partg==1) {
-        answers <- rbind(c(tvect, rep(NA, dim)), c(1, data@f), w/w[1])
+        if (eta==0) {
+            answers <- rbind(c(tvect, rep(NA, dim)), c(1, data@f), w/w[1])
+        } else {
+            answers <- rbind(c(tvect, rep(NA, dim-1)), c(1, data@f), w/w[1])
+        }
     } else {
         answers <- tvect
     }
@@ -130,3 +158,34 @@ hist(histData)
 ## number of dimensions d.  Running time increases with number of data
 ## points N, but increases multiplicatively with number of dimensions
 ## d.
+
+
+############# Problem 1.5 #############
+#######################################
+
+## part a)
+trainingSet <- makeData(100, 2)
+testSet <- makeData(10000, 2)
+etaPerceptron <- perceptron(100,2,TRUE, 1, eta=100)
+## for eta=100, takes ~29-59 iterations
+
+## part b)
+perceptron(100,2,TRUE, 1, eta=1)
+## takes ~70-90 iterations, where the
+## error rate is 0.
+## Rarely, maxes 1000 iterations, error rate 0.78.
+
+## part c)
+perceptron(100,2,TRUE, 1, eta=0.01)
+## takes ~ 7-200 iterations, high variance in number of iterations.
+## error rate is 0
+
+## part d)
+perceptron(100,2,TRUE, 1, eta=0.0001)
+## usually 30-40 iterations, where error rate is 0
+## Rarely, between 2-28 iterations, get -Inf. Possibly rounding error.
+
+## part e)
+## Generally high variation in number of iterations, though it seems that with eta approaching 0, the number of iterations might be on average smaller. However, with very small eta (10e-4), sometimes it did not converge to a solution with finite weights w.
+
+
