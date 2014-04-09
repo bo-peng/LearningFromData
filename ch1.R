@@ -186,6 +186,10 @@ perceptron(100,2,TRUE, 1, eta=0.0001)
 ## Rarely, between 2-28 iterations, get -Inf. Possibly rounding error.
 
 ## part e)
-## Generally high variation in number of iterations, though it seems that with eta approaching 0, the number of iterations might be on average smaller. However, with very small eta (10e-4), sometimes it did not converge to a solution with finite weights w.
+## Generally high variation in number of iterations, though it
+## seems that with eta approaching 0, the number of iterations might
+## be on average smaller. However, with very small eta (10e-4),
+## sometimes it did not converge to a solution with finite weights w.
 
-
+############# Problem 1.7 #############
+#######################################
